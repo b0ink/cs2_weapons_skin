@@ -322,7 +322,16 @@ void CEntityListener::OnEntitySpawned(CEntityInstance* pEntity)
 	#endif
 }
 
-CON_COMMAND_F(skin, "修改皮肤", FCVAR_CLIENT_CAN_EXECUTE)
+void invalidate_glove_material( C_CSGOViewModel* viewmodel )
+{
+	material_magic_number magic 	= material_magic_number__gloves;
+	material_record* mat_records	= *reinterpret_cast< material_record** >( reinterpret_cast< uint_8* >( viewmodel ) + 0xf28 );
+	material_record* record 		= &mat_records[ find_material_index( &mat_records, &material_magic, material_magic, nullptr ) ];
+ 
+	record->ui32_cached_index		= 0xffffffff; /* Invalidates the cached index and forces game to rebuild the material */
+}
+
+CON_COMMAND_F(skin, "test", FCVAR_CLIENT_CAN_EXECUTE)
 {
 	if(context.GetPlayerSlot() == -1)return;
 	CCSPlayerController* pPlayerController = (CCSPlayerController*)g_pEntitySystem->GetBaseEntity((CEntityIndex)(context.GetPlayerSlot().Get() + 1));
@@ -331,12 +340,17 @@ CON_COMMAND_F(skin, "修改皮肤", FCVAR_CLIENT_CAN_EXECUTE)
 		return;
 	
 	CPlayer_WeaponServices* pWeaponServices = pPlayerPawn->m_pWeaponServices();
+	C_CSGOViewModel* viewmodel	= pPlayerPawn->m_pViewModelServices->m_hViewModel->get< C_CSGOViewModel* >( );
+
+	invalidate_glove_material(viewmodel);
 
 	int64_t steamid = pPlayerController->m_steamID();
 	int64_t weaponId = pWeaponServices->m_hActiveWeapon()->m_AttributeManager().m_Item().m_iItemDefinitionIndex();
 	
 	auto weapon_name = g_WeaponsMap.find(weaponId);
 	if(weapon_name == g_WeaponsMap.end())return;
+	
+
 	
 	if(args.ArgC() == 1)
 	{
