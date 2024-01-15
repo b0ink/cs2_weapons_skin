@@ -328,6 +328,7 @@ void invalidate_glove_material( C_CSGOViewModel* viewmodel )
 	material_record* mat_records	= *reinterpret_cast< material_record** >( reinterpret_cast< uint_8* >( viewmodel ) + 0xf28 );
 	material_record* record 		= &mat_records[ find_material_index( &mat_records, &material_magic, material_magic, nullptr ) ];
  
+ 
 	record->ui32_cached_index		= 0xffffffff; /* Invalidates the cached index and forces game to rebuild the material */
 }
 
